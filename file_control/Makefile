@@ -1,6 +1,6 @@
 CC = g++
 
-CFLAGS = -lpthread -g
+CFLAGS = -lpthread -g -std=c++11
 
 TARGET = Server
 

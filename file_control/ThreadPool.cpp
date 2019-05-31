@@ -1,13 +1,15 @@
 #include <cstdio>
 #include <exception>
 #include <list>
-#include "locker.h"
+#include "FileOptions.h"
+#include "Locker.h"
+
 template <typename T>
 
 class ThreadPool {
  public:
   ThreadPool(int num_pthread = 4, int num_max_pthread = 1000);
-  bool append(T *requeset, int &sockfd);  //添加任务
+  bool append(T *requeset, int, int, void *, File_Opt &);  //添加任务
   ~ThreadPool();
 
  private:
@@ -28,7 +30,10 @@ class ThreadPool {
   //信号量
   Sem stat;
   bool stop;
-  int sockfd;
+  int fd;
+  int events;
+  void *arg;
+  File_Opt f;
 };
 template <typename T>
 
@@ -52,6 +57,7 @@ ThreadPool<T>::ThreadPool(int pthread, int max_pthread)
       delete[] threads;
       throw exception();
     }
+    cout << "线程开始工作： " << threads[i] << endl;
     if (pthread_detach(threads[i])) {
       ERR_EXIT("pthread_detach err");
       delete[] threads;
@@ -67,14 +73,19 @@ ThreadPool<T>::~ThreadPool() {
 
 //像线程池中添加任务
 template <typename T>
-bool ThreadPool<T>::append(T *request, int &_sockfd) {
+bool ThreadPool<T>::append(T *request, int _fd, int _events, void *_arg,
+                           File_Opt &_f) {
   lw_queue.lock();
   if (w_queue.size() > num_max_pthread) {
     lw_queue.unlock();
     return false;
   }
   w_queue.push_back(request);
-  sockfd = _sockfd;
+  // call_back = _call;
+  fd = _fd;
+  events = _events;
+  arg = _arg;
+  // f = _f;
   lw_queue.unlock();
   stat.post();
   return true;
@@ -105,6 +116,6 @@ void ThreadPool<T>::run() {
     if (!request) {
       continue;
     }
-    request->Do_File(sockfd);
+    request->call_back(fd, events, arg, f);
   }
 }

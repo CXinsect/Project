@@ -14,8 +14,7 @@ int readn(int fd, void *buf, size_t size) {
       return -1;
     }
     if (nread == 0) {
-      cout << "client is over" << endl;
-      break;
+      return nread;
     }
     nleft -= nread;
     bufp += nread;

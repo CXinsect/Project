@@ -4,6 +4,8 @@
 
 // IO函数
 int readn(int fd, void* buf, size_t size);
+
 int writen(int fd, void* buf, size_t size);
+
 
 #endif
